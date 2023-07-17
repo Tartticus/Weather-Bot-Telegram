@@ -1,0 +1,50 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Sun Jul 16 22:37:48 2023
+
+@author: Matth
+"""
+
+import telepot
+import requests
+
+# Replace 'API_KEY' with your actual Weatherstack API key
+WeatherApi = 'API_KEY'
+
+# Replace 'API_KEY' with your actual bot token
+token = 'API_KEY'
+
+
+# Create an instance of the TelegramBot using your token
+TelegramBot = telepot.Bot(token)
+
+# Define a function to handle incoming messages
+def handle_message(msg):
+    content_type, chat_type, chat_id = telepot.glance(msg)
+
+    if content_type == 'text':
+        # Extract the text message from the incoming message
+        message = msg['text']
+
+        # Make a request to the Weatherstack API
+        response = requests.get(f"http://api.weatherstack.com/current?access_key={WeatherApi}&query={message}")
+
+        if response.status_code == 200:
+            data = response.json()
+            # Extract the relevant information from the response
+            temperature_celsius = data['current']['temperature']
+            temperature_fahrenheit = (temperature_celsius * 9/5) + 32  # Convert Celsius to Fahrenheit
+            weather_description = data['current']['weather_descriptions'][0]
+            response_message = f"Current weather in {message}: {temperature_fahrenheit}°F, {weather_description}"
+        else:
+            response_message = "Failed to retrieve weather data"
+
+        # Send the response message back to the user
+        TelegramBot.sendMessage(chat_id, response_message)
+
+# Add the message handler to the TelegramBot instance
+TelegramBot.message_loop(handle_message)
+
+# Keep the bot running
+while True:
+    pass
